@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>rFactor Mods Collection</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #222; color: #fafafa; }
+    .mod { background: #333; border-radius: 8px; margin: 1em 0; padding: 1em; }
+    .mod-title { font-weight: bold; font-size: 1.2em; margin-bottom: .5em; }
+    .mod-links a { color: #09f; text-decoration: underline; word-break: break-all; }
+    .mod-links { margin-top: .5em; }
+  </style>
+</head>
+<body>
+  <h1>rFactor Mods Collection</h1>
+  <div id="mods-list"></div>
+
+  <script>
+    // Raw mods string, separated by two line breaks between mods
+    const modsRaw = `
+rFactor World Karting 2.10 By Slimjim link:https://www.mediafire.com/file/106dxfxxco75zcy/World_Karting_V2.1.rar 
+Kart Tracks link:https://www.mediafire.com/?wg9md454snm2m
+
+FRS 2013 by F1RS link:https://mega.nz/file/U54VnAiA#3yf41CDaZfbT04H6LAhcMRtNxNSk98i8DC-4pipNbfw 
+Patch 4.1 link:https://mega.nz/file/ssIAmCSJ#v1buPN7CINA65V5PiW7LdMVuZcEugeQcgXGfg7Cpm-0
+Patch 5.0 link:https://mega.nz/file/U55wGSAR#jFURHxMtQX1yxIbmV7gC911t2jiIGqdvT5INS0BwPSI
+Trackpack link:https://mega.nz/file/B8JxEaQC#I2EpeFQJL1nXrG3oCzUQJk_vODCw7snCUKvzH2sIJ8E
+
+GP3 2010-2012 by WST link:https://mega.nz/file/AxpB2JxQ#_d8QaxGtjLgbunhxe7LhiQO9bLzNR-0_iVyOwBpKa3w
+    `.trim();
+
+    // Split by double newline: one mod per block
+    const modBlocks = modsRaw.split(/\n\s*\n/);
+
+    // Parse mod block: find title and links
+    function parseMod(block) {
+      const lines = block.split('\n');
+      let mod = { title: '', links: [] };
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === '') continue;
+        // Find the part before the first "link:" as the label/title
+        const match = line.match(/^(.*?)(?:link:)(https?:\/\/\S+)/i);
+        if (match) {
+          if (!mod.title) mod.title = match[1].trim();
+          mod.links.push({ url: match[2], label: match[1].trim() });
+        } else {
+          if (!mod.title) mod.title = line;
+        }
+      }
+      return mod;
+    }
+
+    // Render mod blocks as cards
+    function renderMods() {
+      const modsList = document.getElementById('mods-list');
+      modsList.innerHTML = '';
+      modBlocks.forEach(block => {
+        const mod = parseMod(block);
+        const div = document.createElement('div');
+        div.className = 'mod';
+        div.innerHTML = `
+          <div class="mod-title">${mod.title}</div>
+          <div class="mod-links">
+            ${mod.links.map(link => `<a href="${link.url}" target="_blank">${link.label}</a>`).join('<br>')}
+          </div>
+        `;
+        modsList.appendChild(div);
+      });
+    }
+
+    renderMods();
+  </script>
+</body>
+</html>
