@@ -3,20 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <title>rFactor Mods Collection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Motorsport-inspired Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; background: #222; color: #fafafa; }
-    .mod { background: #333; border-radius: 8px; margin: 1em 0; padding: 1em; }
-    .mod-title { font-weight: bold; font-size: 1.2em; margin-bottom: .5em; }
-    .mod-links a { color: #09f; text-decoration: underline; word-break: break-all; }
-    .mod-links { margin-top: .5em; }
+    /* Base colors: inspired by rFactor UI */
+    :root {
+      --bg-main: #1c1c1f;
+      --bg-card: #29292d;
+      --accent: #ff8400;
+      --accent-light: #ffc466;
+      --text-main: #fafafa;
+      --text-secondary: #aaa;
+      --border-radius: 14px;
+      --shadow-card: 0 4px 20px rgba(0,0,0,0.14);
+    }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Oswald', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--bg-card);
+      padding: 1rem 0;
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+    h1 {
+      color: var(--accent);
+      font-size: 2.3rem;
+      margin: 0;
+      letter-spacing: 0.05em;
+    }
+    main {
+      max-width: 700px;
+      margin: 2.5rem auto 0 auto;
+      padding: 0 1rem;
+    }
+    .mod-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .mod-card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-card);
+      border: 1.5px solid var(--accent-light);
+      padding: 1.5rem 1.4rem 1.1rem 1.4rem;
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    .mod-card:hover {
+      box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+      border-color: var(--accent);
+    }
+    .mod-title {
+      font-weight: 500;
+      font-size: 1.25rem;
+      color: var(--accent);
+      margin-bottom: 0.45em;
+      letter-spacing: 0.03em;
+    }
+    .mod-links {
+      margin-top: 0.6em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2em;
+    }
+    .mod-links a {
+      color: var(--accent-light);
+      font-size: 1.02rem;
+      text-decoration: none;
+      padding: 0.2em 0;
+      transition: color 0.17s;
+      word-break: break-all;
+    }
+    .mod-links a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .mod-source {
+      margin-top: 1em;
+      font-size: 0.99em;
+      color: var(--text-secondary);
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.45rem; }
+      main { padding: 0 0.3rem; }
+      .mod-card { padding: 1rem 0.6rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>rFactor Mods Collection</h1>
-  <div id="mods-list"></div>
-
+  <header>
+    <h1>rFactor Mods Collection</h1>
+  </header>
+  <main>
+    <div class="mod-list" id="mods-list"></div>
+  </main>
   <script>
-    // Raw mods string, separated by two line breaks between mods
+    // Raw mods string, separated with double newlines between mods
     const modsRaw = `
 rFactor World Karting 2.10 By Slimjim link:https://www.mediafire.com/file/106dxfxxco75zcy/World_Karting_V2.1.rar 
 Kart Tracks link:https://www.mediafire.com/?wg9md454snm2m
@@ -29,17 +120,17 @@ Trackpack link:https://mega.nz/file/B8JxEaQC#I2EpeFQJL1nXrG3oCzUQJk_vODCw7snCUKv
 GP3 2010-2012 by WST link:https://mega.nz/file/AxpB2JxQ#_d8QaxGtjLgbunhxe7LhiQO9bLzNR-0_iVyOwBpKa3w
     `.trim();
 
-    // Split by double newline: one mod per block
+    // Split by double line break: separate blocks for mods
     const modBlocks = modsRaw.split(/\n\s*\n/);
 
-    // Parse mod block: find title and links
+    // Parse each mod block for title and links
     function parseMod(block) {
       const lines = block.split('\n');
       let mod = { title: '', links: [] };
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (line === '') continue;
-        // Find the part before the first "link:" as the label/title
+        if (!line) continue;
+        // Find text before first "link:" as title/label
         const match = line.match(/^(.*?)(?:link:)(https?:\/\/\S+)/i);
         if (match) {
           if (!mod.title) mod.title = match[1].trim();
@@ -51,21 +142,21 @@ GP3 2010-2012 by WST link:https://mega.nz/file/AxpB2JxQ#_d8QaxGtjLgbunhxe7LhiQO9
       return mod;
     }
 
-    // Render mod blocks as cards
+    // Render mods as styled cards
     function renderMods() {
       const modsList = document.getElementById('mods-list');
       modsList.innerHTML = '';
       modBlocks.forEach(block => {
         const mod = parseMod(block);
-        const div = document.createElement('div');
-        div.className = 'mod';
-        div.innerHTML = `
+        const card = document.createElement('div');
+        card.className = 'mod-card';
+        card.innerHTML = `
           <div class="mod-title">${mod.title}</div>
           <div class="mod-links">
-            ${mod.links.map(link => `<a href="${link.url}" target="_blank">${link.label}</a>`).join('<br>')}
+            ${mod.links.map(link => `<a href="${link.url}" target="_blank" rel="noopener">${link.label}</a>`).join('')}
           </div>
         `;
-        modsList.appendChild(div);
+        modsList.appendChild(card);
       });
     }
 
